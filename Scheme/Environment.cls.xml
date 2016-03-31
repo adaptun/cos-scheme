@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="Scheme.Environment">
+<Super>%RegisteredObject</Super>
+<TimeCreated>64008,57544.930776</TimeCreated>
+
+<Property name="outer">
+<Type>Scheme.Environment</Type>
+</Property>
+
+<Property name="data">
+<Type>%String</Type>
+<MultiDimensional>1</MultiDimensional>
+</Property>
+
+<Method name="%OnNew">
+<FormalSpec><![CDATA[parms:%String="",&args,outer:Scheme.Environment=""]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	for i=1:1:$ListLength(parms) {
+		set ..data($List(parms, i)) = args(i)
+	}
+	set ..outer = outer
+	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="find">
+<FormalSpec>var</FormalSpec>
+<ReturnType>Environment</ReturnType>
+<Implementation><![CDATA[
+	if $Data(..data(var)) {
+		return $this
+	}else {
+		return ..outer.find(var)
+	}
+]]></Implementation>
+</Method>
+
+<Method name="standard">
+<ClassMethod>1</ClassMethod>
+<ReturnType>Scheme.Environment</ReturnType>
+<Implementation><![CDATA[
+	set res = ..%New()
+	
+	for op="+","-","*","/",">","<",">=","<=","=","**" {
+		set res.data(op) = "(x,y) return x "_op_" y"
+	}
+	set res.data("abs") = "(x) return $zabs(x)"
+	set res.data("pi") = $zpi
+	set res.data("begin") = "(x...) return x(x)" //return last expression
+	return res
+]]></Implementation>
+</Method>
+</Class>
+</Export>

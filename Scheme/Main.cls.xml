@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="Scheme.Main">
+<Description>
+ideas are taken from 
+http://norvig.com/lispy.html</Description>
+<Super>%RegisteredObject</Super>
+<TimeCreated>64008,2489.737094</TimeCreated>
+
+<Parameter name="trace">
+<Default>0</Default>
+</Parameter>
+
+<Method name="leaveNonEmpty">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>l:%List</FormalSpec>
+<Private>1</Private>
+<ReturnType>%List</ReturnType>
+<Implementation><![CDATA[
+	set res="",ptr=0
+	while $ListNext(l,ptr,val) {
+		if val'="" {
+			set res = res _ $ListBuild(val)
+		}
+	}
+	return res
+]]></Implementation>
+</Method>
+
+<Method name="pop">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[&l:%List]]></FormalSpec>
+<Private>1</Private>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	set item = $List(l),$List(l,1,1)=""
+	quit item
+]]></Implementation>
+</Method>
+
+<Method name="tokenize">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>chars:%String</FormalSpec>
+<ReturnType>%List</ReturnType>
+<Implementation><![CDATA[	return ..leaveNonEmpty($ListFromString($replace($replace(chars,"("," ( "),")"," ) ")," "))
+]]></Implementation>
+</Method>
+
+<Method name="parse">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>program:%String</FormalSpec>
+<ReturnType>%List</ReturnType>
+<Implementation><![CDATA[	return ..readFromTokens(..tokenize(program))
+]]></Implementation>
+</Method>
+
+<Method name="readFromTokens">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[&tokens:%List]]></FormalSpec>
+<ReturnType>%List</ReturnType>
+<Implementation><![CDATA[
+	if $ListLength(tokens) = 0 {
+		throw ##class(%Exception.General).%New("unexpected EOF while reading",100)
+	}
+	set token = ..pop(.tokens)
+	if token = "(" {
+		set L = ""
+		while $List(tokens,1) '= ")" {
+			set $List(L, $ListLength(L)+1) = ..readFromTokens(.tokens)
+		}
+		do ..pop(.tokens)
+		return L
+	} elseif token = ")" {
+		throw ##class(%Exception.General).%New("unexpected )",101,,$List(tokens,1,100))
+	} else {
+		return ..atom(token)
+	}
+]]></Implementation>
+</Method>
+
+<Method name="isNumber">
+<ClassMethod>1</ClassMethod>
+<CodeMode>expression</CodeMode>
+<FormalSpec>s:%String</FormalSpec>
+<Private>1</Private>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[s = +s
+]]></Implementation>
+</Method>
+
+<Method name="atom">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>token:%String</FormalSpec>
+<Implementation><![CDATA[
+	if ..isNumber(token) {
+		quit +token
+	} else {
+		quit token
+	}
+]]></Implementation>
+</Method>
+
+<Method name="eval">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>x,env:Scheme.Environment=##class(Scheme.Environment).standard()</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	if ..isNumber(x) {  //constant literal
+		return x
+	}elseif '$Listvalid(x) { //variable reference
+		return env.find(x).data(x)
+	}elseif $List(x, 1) = "quote" { // (quote exp)
+		return $List(x,2,*)
+	}elseif $List(x, 1) = "if" { // (if test conseq alt)
+		set $ListBuild(,test, conseq, alt) = x
+		if ..eval(test, env) {
+			set exp = conseq
+		} else {
+			set exp = alt
+		}
+		return ..eval(exp, env)
+	}elseif $List(x, 1) = "define" { // (define var exp)
+		set $ListBuild(, var, exp) = x
+		set env.data(var) = ..eval(exp, .env)
+		return "" // TODO: or what should define return?
+	}elseif $List(x, 1) = "set!" { // (set! var exp)
+		set $ListBuild(, var, exp) = x
+		set env.find(var).data(var) = ..eval(exp, .env)
+		return "" // TODO: or what should set! return?
+	}elseif $List(x, 1) = "lambda" { //(lambda (var...) body)
+		set $ListBuild(, parms, body) = x
+		return ##class(Scheme.Procedure).%New(parms, body, env)
+		
+	} else {
+		set proc = ..eval($List(x,1), env)
+		kill args
+		set args=0
+		for i=2:1:$ListLength(x) {
+			set args = args+1
+			set args(args) = ..eval($List(x, i), env)
+		}
+		if ..#trace {
+			write "===calling proc==",!
+			write $isobject(proc),!
+			zwrite proc
+			write "===with args==",!
+			zwrite args
+		}
+		if $isobject(proc) {
+			return proc.call(args...)
+		} else {
+			return $xecute(proc,args...)
+		}
+	}
+]]></Implementation>
+</Method>
+
+<Method name="shell">
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+	set s = ..%New()
+	do s.repl()
+]]></Implementation>
+</Method>
+
+<Method name="repl">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[prompt:%String="lisp> "]]></FormalSpec>
+<Implementation><![CDATA[
+	while 1 {
+		write prompt
+		read x,!
+		if x=":q" {
+			quit
+		}
+		set val = ..eval(..parse(x),.env)
+		write:val'="" ..schemestr(val),!
+	}
+]]></Implementation>
+</Method>
+
+<Method name="listtostring">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>l:%List,delim</FormalSpec>
+<ReturnType>%String</ReturnType>
+</Method>
+
+<Method name="schemestr">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>exp:%List</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	if $listvalid(exp) {
+		set res = "("
+		set ptr = 0
+		while $listnext(exp, ptr, val) {
+			if $listvalid(val) {
+				set res = res _ ..schemestr(val)
+			} else {
+				set res = res _ val
+			}
+			set res = res _ " " 
+		}
+		set $Extract(res,*)=""
+		return res _ ")"
+		return "(" _ ..listtostring(exp, " ")_ ")"
+	} else {
+		return exp
+	}
+]]></Implementation>
+</Method>
+
+<Method name="test">
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+	set p=4
+	set p(1) = "(define twice (lambda (x) (* 2 x)))"
+	set p(2) = "(define repeat (lambda (f) (lambda (x) (f (f x)))))"
+	set p(3) = "((repeat twice) 10)"
+	set p(4) = "((repeat (repeat twice)) 10)"
+	
+	for i=1:1:p {
+		write ">>",p(i),!
+		set val = ..eval(..parse(p(i)), .env)
+		write:val'="" ..schemestr(val),!
+	}
+]]></Implementation>
+</Method>
+</Class>
+</Export>
