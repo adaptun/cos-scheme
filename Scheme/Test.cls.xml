@@ -5,7 +5,10 @@
 <TimeCreated>64008,84153.385434</TimeCreated>
 
 <Method name="run">
+<Description>
+do ##class(Scheme.Test).run()</Description>
 <ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0</FormalSpec>
 <Implementation><![CDATA[
 	set testjson = ##class(%Dictionary.XDataDefinition).%OpenId(..%ClassName(1) _ "||test").Data
 	set json = ##class(%AbstractObject).$fromJSON(testjson)
@@ -14,6 +17,7 @@
 	    set cmd = value.$get(0)
 	    set res = value.$get(1)
 	    
+	    write:verbose ">",cmd,!
 	    set val = ##class(Scheme.Main).eval(##class(Scheme.Main).parse(cmd), .env)
 		set:val'="" val=##class(Scheme.Main).schemestr(val)
 		if val'=res {
@@ -21,6 +25,8 @@
 			write "expected:", res,!
 			write "received:", val,!
 			write "====================",!
+		}elseif verbose {
+			write val,!
 		}
 	}
 ]]></Implementation>
@@ -43,7 +49,13 @@
 	["(define x 7)",""],
 	["(set! x 10)",""],
 	["(+ x 1)","11"],
-	["(quote (the more the merrier the bigger the better))","(the more the merrier the bigger the better)"]
+	["(quote (the more the merrier the bigger the better))","(the more the merrier the bigger the better)"],
+	["(define first car)",""],
+	["(define rest cdr)",""],
+	["(equal? 2 ())",0],
+	["(define count (lambda (item L) (if L (+ (equal? item (first L)) (count item (rest L))) 0)))",""],
+	["(count 0 (quote (0 1 2 3 0 0)))",3],
+	["(count (quote the) (quote (the more the merrier the bigger the better)))",4]
 	]
 ]]></Data>
 </XData>

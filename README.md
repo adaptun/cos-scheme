@@ -31,5 +31,10 @@ Supported special forms:
  4. (set! var exp)
  5. (lambda (var...) body)
 
-
-No embedded function so far.
+Embedded functions:
+ 1. (abs num)
+ 2. (car list)
+ 3. (cdr list)
+ 4. (cons x y)
+ 5. (equal? x y)
+ 6. (procedure? x)
