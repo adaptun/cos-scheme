@@ -11,67 +11,50 @@ http://norvig.com/lispy.html</Description>
 <Default>0</Default>
 </Parameter>
 
-<Method name="leaveNonEmpty">
+<Method name="tokenize">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>l:%List</FormalSpec>
-<Private>1</Private>
-<ReturnType>%List</ReturnType>
+<FormalSpec>chars:%String</FormalSpec>
+<ReturnType>%Array</ReturnType>
 <Implementation><![CDATA[
-	set res="",ptr=0
-	while $ListNext(l,ptr,val) {
-		if val'="" {
-			set res = res _ $ListBuild(val)
+	set str = $replace($replace(chars,"("," ( "),")"," ) ")
+	set res = []
+	for i=1:1:$Length(str, " ") {
+		set item = $Piece(str, " ", i)
+		if item'="" {
+			do res.$push(item)
 		}
 	}
 	return res
 ]]></Implementation>
 </Method>
 
-<Method name="pop">
-<ClassMethod>1</ClassMethod>
-<FormalSpec><![CDATA[&l:%List]]></FormalSpec>
-<Private>1</Private>
-<ReturnType>%String</ReturnType>
-<Implementation><![CDATA[
-	set item = $List(l),$List(l,1,1)=""
-	quit item
-]]></Implementation>
-</Method>
-
-<Method name="tokenize">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>chars:%String</FormalSpec>
-<ReturnType>%List</ReturnType>
-<Implementation><![CDATA[	return ..leaveNonEmpty($ListFromString($replace($replace(chars,"("," ( "),")"," ) ")," "))
-]]></Implementation>
-</Method>
-
 <Method name="parse">
 <ClassMethod>1</ClassMethod>
 <FormalSpec>program:%String</FormalSpec>
-<ReturnType>%List</ReturnType>
+<ReturnType>%Array</ReturnType>
 <Implementation><![CDATA[	return ..readFromTokens(..tokenize(program))
 ]]></Implementation>
 </Method>
 
 <Method name="readFromTokens">
 <ClassMethod>1</ClassMethod>
-<FormalSpec><![CDATA[&tokens:%List]]></FormalSpec>
-<ReturnType>%List</ReturnType>
+<FormalSpec><![CDATA[&tokens:%Array]]></FormalSpec>
+<ReturnType>%Array</ReturnType>
 <Implementation><![CDATA[
-	if $ListLength(tokens) = 0 {
+	if tokens.$size() = 0 {
 		throw ##class(%Exception.General).%New("unexpected EOF while reading",100)
 	}
-	set token = ..pop(.tokens)
+	set token = tokens.$get(0) 
+	do tokens.$remove(0)
 	if token = "(" {
-		set L = ""
-		while $List(tokens,1) '= ")" {
-			set $List(L, $ListLength(L)+1) = ..readFromTokens(.tokens)
+		set L = []
+		while tokens.$get(0) '= ")" {
+			do L.$push(..readFromTokens(.tokens))
 		}
-		do ..pop(.tokens)
+		do tokens.$remove(0)
 		return L
 	} elseif token = ")" {
-		throw ##class(%Exception.General).%New("unexpected )",101,,$List(tokens,1,100))
+		throw ##class(%Exception.General).%New("unexpected )",101,,tokens.$toJSON())
 	} else {
 		return ..atom(token)
 	}
@@ -107,38 +90,47 @@ http://norvig.com/lispy.html</Description>
 <Implementation><![CDATA[
 	if ..isNumber(x) {  //constant literal
 		return x
-	}elseif '$Listvalid(x) { //variable reference
+	}elseif '$isobject(x) { //variable reference
 		return env.find(x).get(x)
-	}elseif $List(x, 1) = "quote" { // (quote exp)
-		return $List(x,2,*)
-	}elseif $List(x, 1) = "if" { // (if test conseq alt)
-		set $ListBuild(,test, conseq, alt) = x
+	}elseif x.$get(0) = "quote" { // (quote exp)
+		return x.$get(1)
+	}elseif x.$get(0) = "if" { // (if test conseq alt)
+		set test = x.$get(1)
+		set conseq = x.$get(2)
+		set alt = x.$get(3)
 		if ..eval(test, env) {
 			set exp = conseq
 		} else {
 			set exp = alt
 		}
 		return ..eval(exp, env)
-	}elseif $List(x, 1) = "define" { // (define var exp)
-		set $ListBuild(, var, exp) = x
+	}elseif x.$get(0) = "define" { // (define var exp)
+		set var = x.$get(1)
+		set exp = x.$get(2)
 		do env.put(var, ..eval(exp, .env))
 		return "" // TODO: or what should define return?
-	}elseif $List(x, 1) = "set!" { // (set! var exp)
-		set $ListBuild(, var, exp) = x
+	}elseif x.$get(0) = "set!" { // (set! var exp)
+		set var = x.$get(1)
+		set exp = x.$get(2)
 		do env.find(var).put(var, ..eval(exp, .env))
 		return "" // TODO: or what should set! return?
-	}elseif $List(x, 1) = "lambda" { //(lambda (var...) body)
-		set $ListBuild(, parms, body) = x
+	}elseif x.$get(0) = "lambda" { //(lambda (var...) body)
+		set parms = x.$get(1)
+		set body = x.$get(2)
 		return ##class(Scheme.Procedure).%New(parms, body, env)
 		
 	} else {
-		set proc = ..eval($List(x,1), env)
+		set proc = ..eval(x.$get(0), env)
 		kill args
 		set args=0
-		for i=2:1:$ListLength(x) {
+		
+		set iter = x.$getIterator()
+		while iter.$getNext(.key , .value ) {
+			continue:key=0
 			set args = args+1
-			set args(args) = ..eval($List(x, i), env)
+			set args(args) = ..eval(value, env)
 		}
+		
 		if ..#trace {
 			write "===calling proc==",!
 			write $isobject(proc),!
@@ -146,20 +138,18 @@ http://norvig.com/lispy.html</Description>
 			write "===with args==",!
 			zwrite args
 		}
+		
 		if $isobject(proc) {
-			return proc.call(args...)
+			//convert args from multidimensional to $Array
+			set normargs = []
+			for i=1:1:args {
+				do normargs.$push(args(i))
+			}
+			return proc.call(normargs)
 		} else {
 			return $xecute(proc,args...)
 		}
 	}
-]]></Implementation>
-</Method>
-
-<Method name="shell">
-<ClassMethod>1</ClassMethod>
-<Implementation><![CDATA[
-	set s = ..%New()
-	do s.repl()
 ]]></Implementation>
 </Method>
 
@@ -184,17 +174,17 @@ http://norvig.com/lispy.html</Description>
 <FormalSpec>exp:%List</FormalSpec>
 <ReturnType>%String</ReturnType>
 <Implementation><![CDATA[
-	if $listvalid(exp) {
+	if $isobject(exp) {
 		set res = "("
-		set ptr = 0
-		while $listnext(exp, ptr, val) {
-			if $listvalid(val) {
-				set res = res _ ..schemestr(val)
-			} else {
-				set res = res _ val
-			}
-			set res = res _ " " 
-		}
+		set iter = exp.$getIterator()
+	    while iter.$getNext(.key , .value ) {
+		    if $isobject(value) {
+			    set res = res _ ..schemestr(value)
+		    } else {
+			    set res = res _ value
+		    }
+		    set res = res _ " " 
+	    }
 		set $Extract(res,*)=""
 		return res _ ")"
 	} else {

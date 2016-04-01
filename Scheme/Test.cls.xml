@@ -42,7 +42,8 @@
 	["(fib 9)","55"],
 	["(define x 7)",""],
 	["(set! x 10)",""],
-	["(+ x 1)","11"]
+	["(+ x 1)","11"],
+	["(quote (the more the merrier the bigger the better))","(the more the merrier the bigger the better)"]
 	]
 ]]></Data>
 </XData>

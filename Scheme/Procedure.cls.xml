@@ -5,11 +5,11 @@
 <TimeCreated>64008,57257.342492</TimeCreated>
 
 <Property name="parms">
-<Type>%List</Type>
+<Type>%Array</Type>
 </Property>
 
 <Property name="body">
-<Type>%List</Type>
+<Type>%Array</Type>
 </Property>
 
 <Property name="env">
@@ -17,7 +17,7 @@
 </Property>
 
 <Method name="%OnNew">
-<FormalSpec>parms:%List,body:%List,env:Environment</FormalSpec>
+<FormalSpec>parms:%Array,body:%Array,env:Environment</FormalSpec>
 <Private>1</Private>
 <ReturnType>%Status</ReturnType>
 <ServerOnly>1</ServerOnly>
@@ -30,8 +30,8 @@
 </Method>
 
 <Method name="call">
-<FormalSpec>args...</FormalSpec>
-<Implementation><![CDATA[	return ##class(Scheme.Main).eval(..body, ##class(Scheme.Environment).%New(..parms, .args, ..env))
+<FormalSpec>args:%Array</FormalSpec>
+<Implementation><![CDATA[	return ##class(Scheme.Main).eval(..body, ##class(Scheme.Environment).%New(..parms, args, ..env))
 ]]></Implementation>
 </Method>
 </Class>

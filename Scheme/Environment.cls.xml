@@ -13,12 +13,16 @@
 </Property>
 
 <Method name="%OnNew">
-<FormalSpec><![CDATA[parms:%String="",&args,outer:Scheme.Environment=""]]></FormalSpec>
+<FormalSpec>parms:%Array,args:%Array,outer:Scheme.Environment=""</FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
 	set ..data = {}
-	for i=1:1:$ListLength(parms) {
-		do ..data.$set($List(parms, i), args(i))
+	
+	if $Data(parms) {
+		set iter = parms.$getIterator()
+		while iter.$getNext(.key , .value ) {
+	   		do ..data.$set(value, args.$get(key))
+		}
 	}
 	set ..outer = outer
 	quit $$$OK
@@ -26,26 +30,23 @@
 </Method>
 
 <Method name="find">
+<CodeMode>expression</CodeMode>
 <FormalSpec>var</FormalSpec>
 <ReturnType>Environment</ReturnType>
-<Implementation><![CDATA[
-	if ..data.$isDefined(var) {
-		return $this
-	}else {
-		return ..outer.find(var)
-	}
+<Implementation><![CDATA[$case(..data.$isDefined(var),1:$this,:..outer.find(var))
 ]]></Implementation>
 </Method>
 
 <Method name="get">
+<CodeMode>expression</CodeMode>
 <FormalSpec>x</FormalSpec>
 <ReturnType>%String</ReturnType>
-<Implementation><![CDATA[	return ..data.$get(x)
+<Implementation><![CDATA[..data.$get(x)
 ]]></Implementation>
 </Method>
 
 <Method name="put">
-<FormalSpec>var,val</FormalSpec>
+<FormalSpec>var:%String,val</FormalSpec>
 <Implementation><![CDATA[	do ..data.$set(var, val)
 ]]></Implementation>
 </Method>
