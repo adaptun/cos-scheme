@@ -210,21 +210,19 @@ do ##class(Scheme.Main).repl()</Description>
 do ##class(Scheme.Main).test()</Description>
 <ClassMethod>1</ClassMethod>
 <Implementation><![CDATA[
-	set p=4
-	set p(1) = "(define first car)"
-	set p(2) = "(define rest cdr)"
-	set p(3) = "(define count (lambda (item L) (if L (+ (equal? item (first L)) (count item (rest L))) 0)))"
-	set p(4) = "(count 1 (quote (0 1 2 3 0 0)))"
+	set p=5
+	set p(1) = "(define map (lambda (fun L) (if L (cons (fun (car L)) (map fun (cdr L))) () )))"
+	set p(2) = "(define fact (lambda (n) (if (<= n 1) 1 (* n (fact (- n 1))))))"
+	set p(3) = "(define range (lambda (a b) (if (= a b) (quote ()) (cons a (range (+ a 1) b)))))"
+	set p(4) = "(range 0 10)"
+	set p(5) = "(map fact (range 0 10))"
 	
-	try {
+
 		for i=1:1:p {
 			write ">>",p(i),!
 			set val = ..eval(..parse(p(i)), .env)
 			write:val'="" ..schemestr(val),!
 		}
-	} catch (ex) {
-		do ex.OutputToDevice()
-	}
 ]]></Implementation>
 </Method>
 </Class>

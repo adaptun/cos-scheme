@@ -65,7 +65,7 @@
 	do res.put("begin","(x...) return x(x)") //return last expression
 	do res.put("car","(x) return x.$get(0)")
 	do res.put("cdr","(x) set r=[], iter = x.$getIterator() do iter.$getNext()  while iter.$getNext(.key , .value ) {do r.$push(value)} return r")
-	do res.put("cons","(x,y) set r=[],r.$push(x),iter = y.$getIterator()  while iter.$getNext(.key , .value ) {do r.$push(value)} return r")
+	do res.put("cons","(x,y) set r=[] do r.$push(x) return:y=0 r set iter = y.$getIterator()  while iter.$getNext(.key , .value ) {do r.$push(value)} return r")
 	do res.put("equal?","(x,y) return (x = y) || ($isobject(x) && $isobject(y) && (x.$toJSON() = y.$toJSON()))")
 	do res.put("procedure?","(x) return $isobject(x) && x.%IsA(""Scheme.Procedure"")")
 	return res

@@ -55,7 +55,11 @@ do ##class(Scheme.Test).run()</Description>
 	["(equal? 2 ())",0],
 	["(define count (lambda (item L) (if L (+ (equal? item (first L)) (count item (rest L))) 0)))",""],
 	["(count 0 (quote (0 1 2 3 0 0)))",3],
-	["(count (quote the) (quote (the more the merrier the bigger the better)))",4]
+	["(count (quote the) (quote (the more the merrier the bigger the better)))",4],
+	["(define range (lambda (a b) (if (= a b) (quote ()) (cons a (range (+ a 1) b)))))",""],
+	["(range 0 10)","(0 1 2 3 4 5 6 7 8 9)"],
+	["(define map (lambda (fun L) (if L (cons (fun (car L)) (map fun (cdr L))) () )))",""],
+	["(map fib (range 0 10))","(1 1 2 3 5 8 13 21 34 55)"]
 	]
 ]]></Data>
 </XData>
