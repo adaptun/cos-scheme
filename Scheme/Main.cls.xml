@@ -179,12 +179,6 @@ http://norvig.com/lispy.html</Description>
 ]]></Implementation>
 </Method>
 
-<Method name="listtostring">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>l:%List,delim</FormalSpec>
-<ReturnType>%String</ReturnType>
-</Method>
-
 <Method name="schemestr">
 <ClassMethod>1</ClassMethod>
 <FormalSpec>exp:%List</FormalSpec>
@@ -203,7 +197,6 @@ http://norvig.com/lispy.html</Description>
 		}
 		set $Extract(res,*)=""
 		return res _ ")"
-		return "(" _ ..listtostring(exp, " ")_ ")"
 	} else {
 		return exp
 	}
