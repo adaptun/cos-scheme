@@ -99,7 +99,7 @@ http://norvig.com/lispy.html</Description>
 		set res = env.find(x).get(x)
 	}elseif x.$size() = 0 {
 		write:..#trace "it is constant",!
-		set res = 0
+		set res = x
 	}elseif x.$get(0) = "quote" { // (quote exp)
 		set res = x.$get(1)
 	}elseif x.$get(0) = "if" { // (if test conseq alt)
