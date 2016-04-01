@@ -108,7 +108,7 @@ http://norvig.com/lispy.html</Description>
 	if ..isNumber(x) {  //constant literal
 		return x
 	}elseif '$Listvalid(x) { //variable reference
-		return env.find(x).data(x)
+		return env.find(x).get(x)
 	}elseif $List(x, 1) = "quote" { // (quote exp)
 		return $List(x,2,*)
 	}elseif $List(x, 1) = "if" { // (if test conseq alt)
@@ -121,11 +121,11 @@ http://norvig.com/lispy.html</Description>
 		return ..eval(exp, env)
 	}elseif $List(x, 1) = "define" { // (define var exp)
 		set $ListBuild(, var, exp) = x
-		set env.data(var) = ..eval(exp, .env)
+		do env.put(var, ..eval(exp, .env))
 		return "" // TODO: or what should define return?
 	}elseif $List(x, 1) = "set!" { // (set! var exp)
 		set $ListBuild(, var, exp) = x
-		set env.find(var).data(var) = ..eval(exp, .env)
+		do env.find(var).put(var, ..eval(exp, .env))
 		return "" // TODO: or what should set! return?
 	}elseif $List(x, 1) = "lambda" { //(lambda (var...) body)
 		set $ListBuild(, parms, body) = x

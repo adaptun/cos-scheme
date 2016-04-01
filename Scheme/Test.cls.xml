@@ -39,7 +39,10 @@
 	["((repeat (repeat twice)) 10)",160],
 	["((repeat (repeat (repeat twice))) 10)",2560],
 	["(define fib (lambda (n) (if (< n 2) 1 (+ (fib (- n 1)) (fib (- n 2))))))",""],
-	["(fib 9)","55"]
+	["(fib 9)","55"],
+	["(define x 7)",""],
+	["(set! x 10)",""],
+	["(+ x 1)","11"]
 	]
 ]]></Data>
 </XData>

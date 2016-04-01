@@ -9,16 +9,16 @@
 </Property>
 
 <Property name="data">
-<Type>%String</Type>
-<MultiDimensional>1</MultiDimensional>
+<Type>%Object</Type>
 </Property>
 
 <Method name="%OnNew">
 <FormalSpec><![CDATA[parms:%String="",&args,outer:Scheme.Environment=""]]></FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
+	set ..data = {}
 	for i=1:1:$ListLength(parms) {
-		set ..data($List(parms, i)) = args(i)
+		do ..data.$set($List(parms, i), args(i))
 	}
 	set ..outer = outer
 	quit $$$OK
@@ -29,11 +29,24 @@
 <FormalSpec>var</FormalSpec>
 <ReturnType>Environment</ReturnType>
 <Implementation><![CDATA[
-	if $Data(..data(var)) {
+	if ..data.$isDefined(var) {
 		return $this
 	}else {
 		return ..outer.find(var)
 	}
+]]></Implementation>
+</Method>
+
+<Method name="get">
+<FormalSpec>x</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[	return ..data.$get(x)
+]]></Implementation>
+</Method>
+
+<Method name="put">
+<FormalSpec>var,val</FormalSpec>
+<Implementation><![CDATA[	do ..data.$set(var, val)
 ]]></Implementation>
 </Method>
 
@@ -44,11 +57,11 @@
 	set res = ..%New()
 	
 	for op="+","-","*","/",">","<",">=","<=","=","**" {
-		set res.data(op) = "(x,y) return x "_op_" y"
+		do res.put(op, "(x,y) return x "_op_" y")
 	}
-	set res.data("abs") = "(x) return $zabs(x)"
-	set res.data("pi") = $zpi
-	set res.data("begin") = "(x...) return x(x)" //return last expression
+	do res.put("abs","(x) return $zabs(x)")
+	do res.put("pi", $zpi)
+	do res.put("begin","(x...) return x(x)") //return last expression
 	return res
 ]]></Implementation>
 </Method>
