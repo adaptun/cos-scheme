@@ -1,6 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
 <Class name="Scheme.Test">
+<Super>%Base</Super>
 <TimeCreated>64008,84153.385434</TimeCreated>
+
+<Method name="run">
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+	set testjson = ##class(%Dictionary.XDataDefinition).%OpenId(..%ClassName(1) _ "||test").Data
+	set json = ##class(%AbstractObject).$fromJSON(testjson)
+	set iter = json.$getIterator()
+	while iter.$getNext(.key , .value ) {
+	    set cmd = value.$get(0)
+	    set res = value.$get(1)
+	    
+	    set val = ##class(Scheme.Main).eval(##class(Scheme.Main).parse(cmd), .env)
+		set:val'="" val=##class(Scheme.Main).schemestr(val)
+		if val'=res {
+			write cmd,!
+			write "expected:", res,!
+			write "received:", val,!
+			write "====================",!
+		}
+	}
+]]></Implementation>
+</Method>
+
+<XData name="test">
+<MimeType>application/json</MimeType>
+<Data><![CDATA[
+[
+	["(define circle-area (lambda (r) (* pi (* r r))))",""],
+	["(define fact (lambda (n) (if (<= n 1) 1 (* n (fact (- n 1))))))",""],
+	["(fact 10)","3628800"],
+	["(define twice (lambda (x) (* 2 x)))",""],
+	["(define repeat (lambda (f) (lambda (x) (f (f x)))))",""],
+	["((repeat twice) 10)",40],
+	["((repeat (repeat twice)) 10)",160],
+	["((repeat (repeat (repeat twice))) 10)",2560],
+	["(define fib (lambda (n) (if (< n 2) 1 (+ (fib (- n 1)) (fib (- n 2))))))",""],
+	["(fib 9)","55"]
+	]
+]]></Data>
+</XData>
 </Class>
 </Export>
