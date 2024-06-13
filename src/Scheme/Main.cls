@@ -5,40 +5,40 @@ Class Scheme.Main Extends %RegisteredObject
 
 Parameter trace = 0;
 
-ClassMethod tokenize(chars As %String) As %Array
+ClassMethod tokenize(chars As %String) As %DynamicArray
 {
 	set str = $replace($replace(chars,"("," ( "),")"," ) ")
 	set res = []
 	for i=1:1:$Length(str, " ") {
 		set item = $Piece(str, " ", i)
 		if item'="" {
-			do res.$push(item)
+			do res.%Push(item)
 		}
 	}
 	return res
 }
 
-ClassMethod parse(program As %String) As %Array
+ClassMethod parse(program As %String) As %DynamicArray
 {
 	return ..readFromTokens(..tokenize(program))
 }
 
-ClassMethod readFromTokens(ByRef tokens As %Array) As %Array
+ClassMethod readFromTokens(ByRef tokens As %DynamicArray) As %DynamicArray
 {
-	if tokens.$size() = 0 {
+	if tokens.%Size() = 0 {
 		throw ##class(%Exception.General).%New("unexpected EOF while reading",100)
 	}
-	set token = tokens.$get(0) 
-	do tokens.$remove(0)
+	set token = tokens.%Get(0) 
+	do tokens.%Remove(0)
 	if token = "(" {
 		set L = []
-		while tokens.$get(0) '= ")" {
-			do L.$push(..readFromTokens(.tokens))
+		while tokens.%Get(0) '= ")" {
+			do L.%Push(..readFromTokens(.tokens))
 		}
-		do tokens.$remove(0)
+		do tokens.%Remove(0)
 		return L
 	} elseif token = ")" {
-		throw ##class(%Exception.General).%New("unexpected )",101,,tokens.$toJSON())
+		throw ##class(%Exception.General).%New("unexpected )",101,,tokens.%ToJSON())
 	} else {
 		return ..atom(token)
 	}
@@ -61,7 +61,7 @@ ClassMethod atom(token As %String)
 ClassMethod eval(x, env As Scheme.Environment = {##class(Scheme.Environment).standard()}) As %String
 {
 	if ..#trace = 1 {
-		write "evaluating: ",$case($isobject(x),1:x.$toJSON(),:x),!
+		write "evaluating: ",$case($isobject(x),1:x.%ToJSON(),:x),!
 	}
 	if ..isNumber(x) {  //constant literal
 		write:..#trace "it is constant",!
@@ -69,44 +69,44 @@ ClassMethod eval(x, env As Scheme.Environment = {##class(Scheme.Environment).sta
 	}elseif '$isobject(x) { //variable reference
 		write:..#trace "it is var ref",!
 		set res = env.find(x).get(x)
-	}elseif x.$size() = 0 {
+	}elseif x.%Size() = 0 {
 		write:..#trace "it is constant",!
 		set res = x
-	}elseif x.$get(0) = "quote" { // (quote exp)
-		set res = x.$get(1)
-	}elseif x.$get(0) = "if" { // (if test conseq alt)
-		set test = x.$get(1)
-		set conseq = x.$get(2)
-		set alt = x.$get(3)
+	}elseif x.%Get(0) = "quote" { // (quote exp)
+		set res = x.%Get(1)
+	}elseif x.%Get(0) = "if" { // (if test conseq alt)
+		set test = x.%Get(1)
+		set conseq = x.%Get(2)
+		set alt = x.%Get(3)
 		set testres = ..eval(test, env)
 		//we treat empty list () as false!
-		if testres && ('$isobject(testres) || testres.$size()) {
+		if testres && ('$isobject(testres) || testres.%Size()) {
 			set exp = conseq
 		} else {
 			set exp = alt
 		}
 		set res = ..eval(exp, env)
-	}elseif x.$get(0) = "define" { // (define var exp)
-		set var = x.$get(1)
-		set exp = x.$get(2)
+	}elseif x.%Get(0) = "define" { // (define var exp)
+		set var = x.%Get(1)
+		set exp = x.%Get(2)
 		do env.put(var, ..eval(exp, .env))
 		set res = "" // TODO: or what should define return?
-	}elseif x.$get(0) = "set!" { // (set! var exp)
-		set var = x.$get(1)
-		set exp = x.$get(2)
+	}elseif x.%Get(0) = "set!" { // (set! var exp)
+		set var = x.%Get(1)
+		set exp = x.%Get(2)
 		do env.find(var).put(var, ..eval(exp, .env))
 		set res = "" // TODO: or what should set! return?
-	}elseif x.$get(0) = "lambda" { //(lambda (var...) body)
-		set parms = x.$get(1)
-		set body = x.$get(2)
+	}elseif x.%Get(0) = "lambda" { //(lambda (var...) body)
+		set parms = x.%Get(1)
+		set body = x.%Get(2)
 		set res = ##class(Scheme.Procedure).%New(parms, body, env)
 	} else {
-		set proc = ..eval(x.$get(0), env)
+		set proc = ..eval(x.%Get(0), env)
 		kill args
 		set args=0
 		
-		set iter = x.$getIterator()
-		while iter.$getNext(.key , .value ) {
+		set iter = x.%GetIterator()
+		while iter.%GetNext(.key , .value ) {
 			continue:key=0
 			set args = args+1
 			set args(args) = ..eval(value, env)
@@ -124,7 +124,7 @@ ClassMethod eval(x, env As Scheme.Environment = {##class(Scheme.Environment).sta
 			//convert args from multidimensional to $Array
 			set normargs = []
 			for i=1:1:args {
-				do normargs.$push(args(i))
+				do normargs.%Push(args(i))
 			}
 			set res = proc.call(normargs)
 		} else {
@@ -148,12 +148,12 @@ ClassMethod repl(prompt As %String = "lisp> ")
 	}
 }
 
-ClassMethod schemestr(exp As %Array) As %String
+ClassMethod schemestr(exp As %DynamicArray) As %String
 {
 	if $isobject(exp) {
 		set res = "("
-		set iter = exp.$getIterator()
-	    while iter.$getNext(.key , .value ) {
+		set iter = exp.%GetIterator()
+	    while iter.%GetNext(.key , .value ) {
 		    if $isobject(value) {
 			    set res = res _ ..schemestr(value)
 		    } else {

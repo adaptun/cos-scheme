@@ -5,11 +5,11 @@ Class Scheme.Test Extends %Base
 ClassMethod run(verbose As %Boolean = 0)
 {
 	set testjson = ##class(%Dictionary.XDataDefinition).%OpenId(..%ClassName(1) _ "||test").Data
-	set json = ##class(%AbstractObject).$fromJSON(testjson)
-	set iter = json.$getIterator()
-	while iter.$getNext(.key , .value ) {
-	    set cmd = value.$get(0)
-	    set res = value.$get(1)
+	set json = {}.%FromJSON(testjson)
+	set iter = json.%GetIterator()
+	while iter.%GetNext(.key , .value ) {
+	    set cmd = value.%Get(0)
+	    set res = value.%Get(1)
 	    
 	    write:verbose ">",cmd,!
 	    set val = ##class(Scheme.Main).eval(##class(Scheme.Main).parse(cmd), .env)

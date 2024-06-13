@@ -1,13 +1,13 @@
 Class Scheme.Procedure Extends %RegisteredObject
 {
 
-Property parms As %Array;
+Property parms As %DynamicArray;
 
-Property body As %Array;
+Property body As %DynamicArray;
 
 Property env As Environment;
 
-Method %OnNew(parms As %Array, body As %Array, env As Environment) As %Status [ Private, ServerOnly = 1 ]
+Method %OnNew(parms As %DynamicArray, body As %DynamicArray, env As Environment) As %Status [ Private, ServerOnly = 1 ]
 {
 	set ..parms = parms
 	set ..body = body
@@ -15,7 +15,7 @@ Method %OnNew(parms As %Array, body As %Array, env As Environment) As %Status [ 
 	Quit $$$OK
 }
 
-Method call(args As %Array)
+Method call(args As %DynamicArray)
 {
 	return ##class(Scheme.Main).eval(..body, ##class(Scheme.Environment).%New(..parms, args, ..env))
 }
