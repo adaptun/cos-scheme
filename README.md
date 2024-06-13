@@ -1,5 +1,5 @@
 # cos-scheme
-basic implementation of Scheme in Caché ObjectScript
+basic implementation of Scheme in InterSystems ObjectScript
 
 Algorithm is taken from 
 http://norvig.com/lispy.html
