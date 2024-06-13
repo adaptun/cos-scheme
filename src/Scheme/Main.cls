@@ -1,21 +1,12 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25">
-<Class name="Scheme.Main">
-<Description>
-ideas are taken from 
-http://norvig.com/lispy.html</Description>
-<Super>%RegisteredObject</Super>
-<TimeCreated>64008,2489.737094</TimeCreated>
+/// ideas are taken from 
+/// http://norvig.com/lispy.html
+Class Scheme.Main Extends %RegisteredObject
+{
 
-<Parameter name="trace">
-<Default>0</Default>
-</Parameter>
+Parameter trace = 0;
 
-<Method name="tokenize">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>chars:%String</FormalSpec>
-<ReturnType>%Array</ReturnType>
-<Implementation><![CDATA[
+ClassMethod tokenize(chars As %String) As %Array
+{
 	set str = $replace($replace(chars,"("," ( "),")"," ) ")
 	set res = []
 	for i=1:1:$Length(str, " ") {
@@ -25,22 +16,15 @@ http://norvig.com/lispy.html</Description>
 		}
 	}
 	return res
-]]></Implementation>
-</Method>
+}
 
-<Method name="parse">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>program:%String</FormalSpec>
-<ReturnType>%Array</ReturnType>
-<Implementation><![CDATA[	return ..readFromTokens(..tokenize(program))
-]]></Implementation>
-</Method>
+ClassMethod parse(program As %String) As %Array
+{
+	return ..readFromTokens(..tokenize(program))
+}
 
-<Method name="readFromTokens">
-<ClassMethod>1</ClassMethod>
-<FormalSpec><![CDATA[&tokens:%Array]]></FormalSpec>
-<ReturnType>%Array</ReturnType>
-<Implementation><![CDATA[
+ClassMethod readFromTokens(ByRef tokens As %Array) As %Array
+{
 	if tokens.$size() = 0 {
 		throw ##class(%Exception.General).%New("unexpected EOF while reading",100)
 	}
@@ -58,36 +42,24 @@ http://norvig.com/lispy.html</Description>
 	} else {
 		return ..atom(token)
 	}
-]]></Implementation>
-</Method>
+}
 
-<Method name="isNumber">
-<ClassMethod>1</ClassMethod>
-<CodeMode>expression</CodeMode>
-<FormalSpec>s:%String</FormalSpec>
-<Private>1</Private>
-<ReturnType>%Boolean</ReturnType>
-<Implementation><![CDATA[s = +s
-]]></Implementation>
-</Method>
+ClassMethod isNumber(s As %String) As %Boolean [ CodeMode = expression, Private ]
+{
+s = +s
+}
 
-<Method name="atom">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>token:%String</FormalSpec>
-<Implementation><![CDATA[
+ClassMethod atom(token As %String)
+{
 	if ..isNumber(token) {
 		quit +token
 	} else {
 		quit token
 	}
-]]></Implementation>
-</Method>
+}
 
-<Method name="eval">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>x,env:Scheme.Environment=##class(Scheme.Environment).standard()</FormalSpec>
-<ReturnType>%String</ReturnType>
-<Implementation><![CDATA[
+ClassMethod eval(x, env As Scheme.Environment = {##class(Scheme.Environment).standard()}) As %String
+{
 	if ..#trace = 1 {
 		write "evaluating: ",$case($isobject(x),1:x.$toJSON(),:x),!
 	}
@@ -160,15 +132,11 @@ http://norvig.com/lispy.html</Description>
 		}
 	}
 	return res
-]]></Implementation>
-</Method>
+}
 
-<Method name="repl">
-<Description>
-do ##class(Scheme.Main).repl()</Description>
-<ClassMethod>1</ClassMethod>
-<FormalSpec><![CDATA[prompt:%String="lisp> "]]></FormalSpec>
-<Implementation><![CDATA[
+/// do ##class(Scheme.Main).repl()
+ClassMethod repl(prompt As %String = "lisp> ")
+{
 	while 1 {
 		write prompt
 		read x,!
@@ -178,14 +146,10 @@ do ##class(Scheme.Main).repl()</Description>
 		set val = ..eval(..parse(x),.env)
 		write:val'="" ..schemestr(val),!
 	}
-]]></Implementation>
-</Method>
+}
 
-<Method name="schemestr">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>exp:%Array</FormalSpec>
-<ReturnType>%String</ReturnType>
-<Implementation><![CDATA[
+ClassMethod schemestr(exp As %Array) As %String
+{
 	if $isobject(exp) {
 		set res = "("
 		set iter = exp.$getIterator()
@@ -202,14 +166,11 @@ do ##class(Scheme.Main).repl()</Description>
 	} else {
 		return exp
 	}
-]]></Implementation>
-</Method>
+}
 
-<Method name="test">
-<Description>
-do ##class(Scheme.Main).test()</Description>
-<ClassMethod>1</ClassMethod>
-<Implementation><![CDATA[
+/// do ##class(Scheme.Main).test()
+ClassMethod test()
+{
 	set p=5
 	set p(1) = "(define map (lambda (fun L) (if L (cons (fun (car L)) (map fun (cdr L))) () )))"
 	set p(2) = "(define fact (lambda (n) (if (<= n 1) 1 (* n (fact (- n 1))))))"
@@ -223,7 +184,6 @@ do ##class(Scheme.Main).test()</Description>
 			set val = ..eval(..parse(p(i)), .env)
 			write:val'="" ..schemestr(val),!
 		}
-]]></Implementation>
-</Method>
-</Class>
-</Export>
+}
+
+}

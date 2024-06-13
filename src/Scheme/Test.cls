@@ -1,15 +1,9 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25">
-<Class name="Scheme.Test">
-<Super>%Base</Super>
-<TimeCreated>64008,84153.385434</TimeCreated>
+Class Scheme.Test Extends %Base
+{
 
-<Method name="run">
-<Description>
-do ##class(Scheme.Test).run()</Description>
-<ClassMethod>1</ClassMethod>
-<FormalSpec>verbose:%Boolean=0</FormalSpec>
-<Implementation><![CDATA[
+/// do ##class(Scheme.Test).run()
+ClassMethod run(verbose As %Boolean = 0)
+{
 	set testjson = ##class(%Dictionary.XDataDefinition).%OpenId(..%ClassName(1) _ "||test").Data
 	set json = ##class(%AbstractObject).$fromJSON(testjson)
 	set iter = json.$getIterator()
@@ -29,12 +23,10 @@ do ##class(Scheme.Test).run()</Description>
 			write val,!
 		}
 	}
-]]></Implementation>
-</Method>
+}
 
-<XData name="test">
-<MimeType>application/json</MimeType>
-<Data><![CDATA[
+XData test [ MimeType = application/json ]
+{
 [
 	["(define circle-area (lambda (r) (* pi (* r r))))",""],
 	["(define fact (lambda (n) (if (<= n 1) 1 (* n (fact (- n 1))))))",""],
@@ -61,7 +53,6 @@ do ##class(Scheme.Test).run()</Description>
 	["(define map (lambda (fun L) (if L (cons (fun (car L)) (map fun (cdr L))) () )))",""],
 	["(map fib (range 0 10))","(1 1 2 3 5 8 13 21 34 55)"]
 	]
-]]></Data>
-</XData>
-</Class>
-</Export>
+}
+
+}
